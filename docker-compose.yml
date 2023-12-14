@@ -1,0 +1,41 @@
+version: "3.6"
+services:
+  grafana:
+    build:
+      context: ./docker/grafana
+    image: grafana_app:demo
+    volumes:
+      - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./provisioning/datasources:/etc/grafana/provisioning/datasources
+      - grafana-storage:/var/lib/grafana
+    env_file:
+      - ./docker/grafana/grafana.env
+    ports:
+      - '3000:3000'
+    networks:
+      - graf-db-demo
+
+  mysql:
+    build:
+      context: ./docker/mysql
+    image: grafana_db:demo
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: grafana_admin
+      MYSQL_DATABASE: demo_data
+      MYSQL_USER: graf
+      MYSQL_PASSWORD: anadb
+    volumes:
+      - ./data/mysqlsampledatabase.sql:/docker-entrypoint-initdb.d/start.sql
+      - db-storage:/var/lib/mysql
+    networks:
+      - graf-db-demo
+
+networks:
+  graf-db-demo:
+    driver: bridge
+
+volumes:
+  grafana-storage: {}
+  db-storage: {}
